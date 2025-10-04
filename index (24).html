@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Report Builder v3.5 — Full Headings + Dictation</title>
+<style>
+  :root{--blue:#004080;--line:#d8dce6;--bg:#f5f6fa;--card:#fff;--txt:#111}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--txt)}
+  header{background:var(--blue);color:#fff;padding:14px 18px}
+  header h1{margin:0;font-size:18px}
+  main{max-width:1120px;margin:18px auto;padding:0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:18px;margin:10px 0}
+  label{display:block;font-size:13px;margin:6px 0 4px}
+  input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+  textarea{min-height:120px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{appearance:none;border:1px solid var(--line);background:#eef2ff;color:#1b2a5a;border-radius:10px;padding:8px 10px;cursor:pointer}
+  .btn.primary{background:#1b4ed8;color:#fff;border-color:#1b4ed8}
+  .btn.danger{background:#b42318;color:#fff;border-color:#b42318}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{border:1px solid var(--line);padding:8px;text-align:left;font-size:13px}
+  th{background:#f0f3ff}
+  .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .photo{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .photo img{display:block;width:100%;height:150px;object-fit:cover}
+  .photo .cap{border-top:1px solid var(--line);padding:6px}
+  .tag{display:inline-block;border:1px solid var(--line);background:#f6f7ff;border-radius:999px;padding:3px 8px;font-size:12px;color:#3a4a7a}
+  .clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+  .clip{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff}
+  .grid2{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
+  @media print{
+    header,.no-print{display:none!important}
+    .card{border:none;box-shadow:none;padding:0}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Report Builder v3.5</h1>
+  <div style="font-size:12px;opacity:.9">All headings from v11 + Claims list, Photos, Transcript (Record & Live Transcribe), Fees & PDF</div>
+</header>
+
+<main>
+  <!-- Claims list -->
+  <section class="card">
+    <h2>Claims</h2>
+    <div class="row no-print" style="margin:6px 0 10px">
+      <button class="btn primary" id="newReport">New Report</button>
+      <button class="btn" id="saveClaim">Save to Browser</button>
+      <span class="tag">Saved locally (this browser)</span>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Insured</th><th>Updated</th><th class="no-print">Actions</th></tr></thead>
+      <tbody id="claimsBody"></tbody>
+    </table>
+    <div id="noClaims" class="tag" style="display:none;margin-top:8px">No saved claims yet</div>
+  </section>
+
+  <!-- Report meta -->
+  <section class="card" style="margin-top:14px">
+    <h2>Report Details</h2>
+    <div class="grid2">
+      <div><label>Title</label><input id="f_title" placeholder="e.g., HL-2025-001 – Storm damage"/></div>
+      <div><label>Insured</label><input id="f_insured" placeholder="Insured"/></div>
+      <div><label>Risk Address</label><input id="f_risk" placeholder="Address"/></div>
+      <div><label>Policy Number</label><input id="f_policy" placeholder="Policy"/></div>
+      <div><label>Claim Number</label><input id="f_claimno" placeholder="Claim #"/></div>
+      <div><label>Date of Loss</label><input id="f_dol" type="date"/></div>
+    </div>
+  </section>
+
+  <!-- Content sections from v11 -->
+  <section class="card" style="margin-top:14px">
+    <h2>Introduction</h2><textarea id="sec_intro"></textarea>
+    <h2>The Risk (property description)</h2><textarea id="sec_risk"></textarea>
+    <h2>Sum Insured / Value at Risk</h2><textarea id="sec_var"></textarea>
+    <h2>Other Insurance / Previous Losses</h2><textarea id="sec_other"></textarea>
+    <h2>Circumstances of the Loss</h2><textarea id="sec_circ"></textarea>
+    <h2>Assessment</h2><textarea id="sec_assess"></textarea>
+    <h2>Invoices / Quotations</h2><textarea id="sec_invoices"></textarea>
+    <h2>Quantum and Adjustment</h2><textarea id="sec_quantum"></textarea>
+    <h2>Policy Cover / Terms / Conditions / Liability</h2><textarea id="sec_liability"></textarea>
+    <h2>Settlement Recommendations</h2><textarea id="sec_recommend"></textarea>
+    <h2>Conclusion</h2><textarea id="sec_concl"></textarea>
+  </section>
+
+  <!-- Photos -->
+  <section class="card" style="margin-top:14px">
+    <div class="row" style="justify-content:space-between">
+      <h2>Photos</h2>
+      <div class="row no-print">
+        <label class="btn"><input hidden type="file" id="photoFiles" accept="image/*" multiple/>Upload</label>
+        <label class="btn"><input hidden type="file" id="photoCam" accept="image/*" capture="environment" multiple/>Use Camera</label>
+      </div>
+    </div>
+    <div id="photos" class="photos"></div>
+  </section>
+
+  <!-- Transcript -->
+  <section class="card" style="margin-top:14px">
+    <h2>Transcript / Voice Notes</h2>
+    <div class="row no-print" style="margin-bottom:8px">
+      <button class="btn" id="recStart">🎙️ Start Recording</button>
+      <button class="btn" id="recStop" disabled>Stop</button>
+      <button class="btn" id="sttToggle">Enable Live Transcribe</button>
+      <label class="btn"><input hidden type="file" id="txtImport" accept=".txt"/>Import .txt</label>
+      <span class="tag" id="recBadge" style="display:none">Recording…</span>
+      <span class="tag" id="sttBadge" style="display:none">Live Transcribe ON</span>
+    </div>
+    <textarea id="f_transcript" class="no-print" placeholder="Dictation appears here with Live Transcribe; you can also type."></textarea>
+    <div id="clips" class="clips"></div>
+  </section>
+
+  <!-- Fees -->
+  <section class="card" style="margin-top:14px">
+    <h2>Note of Fee</h2>
+    <table id="feeTbl">
+      <thead><tr><th>Description</th><th style="width:140px">Amount (R)</th><th class="no-print" style="width:80px">Action</th></tr></thead>
+      <tbody id="feeBody"></tbody>
+      <tfoot>
+        <tr><th>Sub‑Total</th><td id="feeSub">0.00</td><td></td></tr>
+        <tr><th>VAT (15%)</th><td id="feeVat">0.00</td><td></td></tr>
+        <tr><th>Total</th><td id="feeTot"><b>0.00</b></td><td></td></tr>
+      </tfoot>
+    </table>
+    <div class="row no-print" style="margin-top:8px">
+      <button class="btn" id="feeAdd">Add Row</button>
+      <button class="btn danger" id="feeClear">Clear</button>
+      <button class="btn" onclick="window.print()">Export PDF</button>
+    </div>
+  </section>
+</main>
+
+<script>
+// ---------- Storage ----------
+const KEY_INDEX='rb_idx_v35'; const KEY_CLAIM=id=>'rb_claim_v35:'+id;
+const loadIndex=()=>JSON.parse(localStorage.getItem(KEY_INDEX)||'[]');
+const saveIndex=i=>localStorage.setItem(KEY_INDEX,JSON.stringify(i));
+const loadClaim=id=>JSON.parse(localStorage.getItem(KEY_CLAIM(id))||'null');
+const saveClaimData=(id,data)=>localStorage.setItem(KEY_CLAIM(id),JSON.stringify(data));
+const delClaim=id=>{localStorage.removeItem(KEY_CLAIM(id)); saveIndex(loadIndex().filter(x=>x.id!==id));};
+
+// ---------- State ----------
+let currentId=null, photos=[], clips=[], feeRows=[];
+
+// ---------- Refs ----------
+const $=id=>document.getElementById(id);
+const $claimsBody=$('claimsBody'), $noClaims=$('noClaims');
+const fields=[
+  'f_title','f_insured','f_risk','f_policy','f_claimno','f_dol',
+  'sec_intro','sec_risk','sec_var','sec_other','sec_circ','sec_assess','sec_invoices','sec_quantum','sec_liability','sec_recommend','sec_concl',
+  'f_transcript'
+];
+const els={}; fields.forEach(id=>els[id]=$(id));
+const $photoFiles=$('photoFiles'), $photoCam=$('photoCam'), $photos=$('photos');
+const $clips=$('clips'), $feeBody=$('feeBody'), $feeSub=$('feeSub'), $feeVat=$('feeVat'), $feeTot=$('feeTot');
+
+// ---------- Claims ----------
+function escape(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function newId(){return 'c'+Math.random().toString(36).slice(2,8)+Date.now().toString(36);}
+function renderClaims(){
+  const idx=loadIndex().sort((a,b)=>b.updated-a.updated);
+  $claimsBody.innerHTML=''; $noClaims.style.display=idx.length?'none':'inline-block';
+  for(const it of idx){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escape(it.title||'(Untitled)')}</td>
+                  <td>${escape(it.insured||'')}</td>
+                  <td>${new Date(it.updated||Date.now()).toLocaleString()}</td>
+                  <td class="no-print">
+                    <button class="btn" data-open="${it.id}">Open</button>
+                    <button class="btn danger" data-del="${it.id}">Delete</button>
+                  </td>`;
+    $claimsBody.appendChild(tr);
+  }
+}
+document.addEventListener('click',e=>{
+  const o=e.target.getAttribute&&e.target.getAttribute('data-open');
+  const d=e.target.getAttribute&&e.target.getAttribute('data-del');
+  if(o){ const data=loadClaim(o); if(data){ currentId=o; populate(data);} }
+  if(d){ if(confirm('Delete this claim?')){ delClaim(d); renderClaims(); } }
+});
+$('newReport').addEventListener('click',()=>{ currentId=null; populate({}); });
+$('saveClaim').addEventListener('click',()=>{
+  const data=collect(); if(!currentId) currentId=newId(); data.updated=Date.now();
+  saveClaimData(currentId,data);
+  const idx=loadIndex(); const row={id:currentId,title:data.title,insured:data.insured,updated:data.updated};
+  const pos=idx.findIndex(x=>x.id===currentId); if(pos>=0) idx[pos]=row; else idx.push(row);
+  saveIndex(idx); renderClaims(); alert('Saved to browser.');
+});
+
+// ---------- Collect / Populate ----------
+function collect(){
+  return {
+    title:els.f_title.value.trim(),
+    insured:els.f_insured.value.trim(),
+    risk:els.f_risk.value.trim(),
+    policy:els.f_policy.value.trim(),
+    claimNo:els.f_claimno.value.trim(),
+    dateOfLoss:els.f_dol.value,
+    sections:{
+      intro:els.sec_intro.value, risk:els.sec_risk.value, var:els.sec_var.value, other:els.sec_other.value,
+      circ:els.sec_circ.value, assess:els.sec_assess.value, invoices:els.sec_invoices.value, quantum:els.sec_quantum.value,
+      liability:els.sec_liability.value, recommend:els.sec_recommend.value, concl:els.sec_concl.value
+    },
+    transcript:els.f_transcript.value,
+    photos, clips, fees:feeRows
+  };
+}
+function populate(d={}){
+  els.f_title.value=d.title||''; els.f_insured.value=d.insured||''; els.f_risk.value=d.risk||'';
+  els.f_policy.value=d.policy||''; els.f_claimno.value=d.claimNo||''; els.f_dol.value=d.dateOfLoss||'';
+  const s=d.sections||{};
+  els.sec_intro.value=s.intro||''; els.sec_risk.value=s.risk||''; els.sec_var.value=s.var||''; els.sec_other.value=s.other||'';
+  els.sec_circ.value=s.circ||''; els.sec_assess.value=s.assess||''; els.sec_invoices.value=s.invoices||''; els.sec_quantum.value=s.quantum||'';
+  els.sec_liability.value=s.liability||''; els.sec_recommend.value=s.recommend||''; els.sec_concl.value=s.concl||'';
+  els.f_transcript.value=d.transcript||'';
+  photos=d.photos||[]; clips=d.clips||[]; feeRows=d.fees||[];
+  renderPhotos(); renderClips(); renderFees();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ---------- Photos ----------
+function renderPhotos(){
+  $photos.innerHTML='';
+  photos.forEach((p,i)=>{
+    const div=document.createElement('div'); div.className='photo';
+    div.innerHTML=`<img src="${p.dataUrl}"/><div class="cap">
+      <input value="${escape(p.caption||'')}" data-cap="${i}" placeholder="Caption">
+      <div class="row" style="justify-content:flex-end;margin-top:6px">
+        <button class="btn danger" data-delp="${i}">Remove</button>
+      </div></div>`;
+    $photos.appendChild(div);
+  });
+}
+$photos.addEventListener('input',e=>{const i=e.target.getAttribute('data-cap'); if(i!=null){photos[+i].caption=e.target.value;}});
+$photos.addEventListener('click',e=>{const i=e.target.getAttribute('data-delp'); if(i!=null){photos.splice(+i,1); renderPhotos();}});
+$photoFiles.addEventListener('change',e=>handlePhotoFiles(e.target.files));
+$photoCam.addEventListener('change',e=>handlePhotoFiles(e.target.files));
+async function handlePhotoFiles(list){
+  for(const f of Array.from(list||[])){ const dataUrl=await fileToDataURL(f); photos.push({dataUrl,caption:''}); }
+  renderPhotos();
+}
+function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file);});}
+
+// ---------- Transcript (Record + STT) ----------
+let mediaRecorder=null, recChunks=[], stt=null, sttOn=false, recStartTs=0;
+const $recStart=$('recStart'), $recStop=$('recStop'), $recBadge=$('recBadge'), $sttToggle=$('sttToggle'), $sttBadge=$('sttBadge');
+function renderClips(){
+  $clips.innerHTML='';
+  clips.forEach((c,i)=>{
+    const d=document.createElement('div'); d.className='clip';
+    d.innerHTML=`<audio controls src="${c.dataUrl}" style="width:100%"></audio>
+                 <input value="${escape(c.caption||'')}" data-capclip="${i}" placeholder="Caption (optional)" style="margin-top:6px"/>
+                 <div class="row" style="justify-content:flex-end;margin-top:6px">
+                   <button class="btn danger" data-delclip="${i}">Delete</button>
+                 </div>
+                 <div class="tag" style="margin-top:6px">~${Math.round(c.duration||0)}s</div>`;
+    $clips.appendChild(d);
+  });
+}
+$clips.addEventListener('input',e=>{const i=e.target.getAttribute('data-capclip'); if(i!=null){clips[+i].caption=e.target.value;}});
+$clips.addEventListener('click',e=>{const i=e.target.getAttribute('data-delclip'); if(i!=null){clips.splice(+i,1); renderClips();}});
+
+$('txtImport').addEventListener('change',async e=>{
+  const f=e.target.files?.[0]; if(!f) return; const txt=await f.text();
+  els.f_transcript.value = (els.f_transcript.value? els.f_transcript.value+'\n\n':'' ) + txt; e.target.value='';
+});
+
+$recStart.addEventListener('click',async()=>{
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream); recChunks=[]; recStartTs=Date.now();
+    mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) recChunks.push(e.data); };
+    mediaRecorder.onstop=async()=>{
+      const blob=new Blob(recChunks,{type:'audio/webm'});
+      const url=await blobToDataURL(blob);
+      const dur=(Date.now()-recStartTs)/1000;
+      clips.push({dataUrl:url,caption:'',duration:dur}); renderClips();
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mediaRecorder.start(); $recStart.disabled=true; $recStop.disabled=false; $recBadge.style.display='inline-block';
+  }catch(err){ alert('Mic access failed. Check permissions.'); }
+});
+$recStop.addEventListener('click',()=>{
+  if(mediaRecorder && mediaRecorder.state!=='inactive'){ mediaRecorder.stop(); }
+  $recStart.disabled=false; $recStop.disabled=true; $recBadge.style.display='none';
+});
+function blobToDataURL(b){return new Promise(r=>{const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(b);});}
+
+if('webkitSpeechRecognition' in window){
+  stt = new webkitSpeechRecognition();
+  stt.lang = 'en-ZA'; // set 'af-ZA' if preferred
+  stt.continuous = true; stt.interimResults = true;
+  stt.onresult = (e)=>{
+    let final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal){ final += r[0].transcript + ' '; } }
+    if(final){ els.f_transcript.value += final; }
+  };
+  stt.onend = ()=>{ if(sttOn){ stt.start(); } };
+}else{
+  $sttToggle.disabled=true; $sttToggle.textContent='Live Transcribe not supported';
+}
+$sttToggle.addEventListener('click',()=>{
+  if(!stt) return;
+  if(!sttOn){ sttOn=true; stt.start(); $sttBadge.style.display='inline-block'; $sttToggle.textContent='Disable Live Transcribe'; }
+  else{ sttOn=false; try{ stt.stop(); }catch{} $sttBadge.style.display='none'; $sttToggle.textContent='Enable Live Transcribe'; }
+});
+
+// ---------- Fees ----------
+function renderFees(){
+  $feeBody.innerHTML='';
+  feeRows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${escape(r.desc||'')}" data-f="desc" data-i="${i}" /></td>
+                  <td><input value="${r.amt??0}" data-f="amt" data-i="${i}" /></td>
+                  <td class="no-print"><button class="btn danger" data-rm="${i}">Remove</button></td>`;
+    $feeBody.appendChild(tr);
+  });
+  const sub=feeRows.reduce((s,r)=>s+(parseFloat(r.amt||0)||0),0);
+  const vat=sub*0.15; const tot=sub+vat;
+  $feeSub.textContent=sub.toFixed(2); $feeVat.textContent=vat.toFixed(2); $feeTot.textContent=tot.toFixed(2);
+}
+$feeBody.addEventListener('input',e=>{
+  const i=e.target.getAttribute('data-i'); const f=e.target.getAttribute('data-f');
+  if(i!=null){ feeRows[+i][f]=e.target.value; renderFees(); }
+});
+$feeBody.addEventListener('click',e=>{ const i=e.target.getAttribute('data-rm'); if(i!=null){ feeRows.splice(+i,1); renderFees(); } });
+$('feeAdd').addEventListener('click',()=>{ feeRows.push({desc:'',amt:0}); renderFees(); });
+$('feeClear').addEventListener('click',()=>{ if(confirm('Clear all fee rows?')){ feeRows=[]; renderFees(); } });
+
+// ---------- Utils ----------
+function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file);});}
+
+// ---------- Init ----------
+renderClaims();
+populate({fees:[{desc:'Assessment Fee',amt:0},{desc:'Travel',amt:0}]});
+</script>
+</body>
+</html>
