@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Builder v3.2</title>
+  <style>
+    :root {
+      --blue:#004080;
+      --blue-dark:#003060;
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --border:#d9d9df;
+      --text:#1d1d1f;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+    header{
+      background:var(--blue);
+      color:#fff;
+      padding:1rem;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:1.5rem;
+    }
+    main{
+      max-width:1000px;
+      margin:2rem auto;
+      background:var(--card);
+      padding:2rem;
+      border:1px solid var(--border);
+      border-radius:8px;
+    }
+    h2{color:var(--blue-dark);margin-top:2rem}
+    textarea, input[type="text"], input[type="file"]{
+      width:100%;
+      padding:0.5rem;
+      margin-top:0.5rem;
+      border:1px solid var(--border);
+      border-radius:4px;
+      font-size:1rem;
+    }
+    textarea{min-height:200px}
+    .fullpage-input{
+      min-height:400px;
+    }
+    .file-upload{
+      margin:1rem 0;
+      padding:1rem;
+      border:2px dashed var(--border);
+      text-align:center;
+      background:#fafafa;
+    }
+    footer{
+      margin-top:2rem;
+      text-align:center;
+      color:#555;
+    }
+    button{
+      background:var(--blue);
+      color:white;
+      border:none;
+      padding:0.75rem 1.5rem;
+      border-radius:4px;
+      cursor:pointer;
+      margin-top:1rem;
+    }
+    button:hover{
+      background:var(--blue-dark);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Report Builder v3.2</h1>
+    <p>Neutral version — no logos, no branding, for all claims</p>
+  </header>
+  <main>
+    <h2>Circumstances of Loss</h2>
+    <textarea placeholder="Enter details of circumstances of loss..."></textarea>
+
+    <h2>Assessment</h2>
+    <textarea placeholder="Enter assessment details..."></textarea>
+
+    <h2>Conclusion</h2>
+    <textarea placeholder="Enter conclusion and recommendations..."></textarea>
+
+    <h2>Photos (Full Page)</h2>
+    <div class="file-upload">
+      <input type="file" multiple>
+    </div>
+
+    <h2>Transcript (Full Page)</h2>
+    <textarea class="fullpage-input" placeholder="Paste or dictate transcript here..."></textarea>
+
+    <h2>Note of Fee</h2>
+    <textarea placeholder="Enter fee note details..."></textarea>
+
+    <button onclick="window.print()">Export to PDF</button>
+  </main>
+  <footer>
+    <p>Report Builder v3.2 — Printable & Exportable</p>
+  </footer>
+</body>
+</html>
