@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Report Builder v3.1</title>
+<style>
+  :root{
+    --blue:#004080;
+    --blue-dark:#003060;
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --border:#d9d9df;
+    --text:#1d1d1f;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:var(--bg);
+  }
+  header{
+    background:var(--blue);
+    color:#fff;
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  header h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.3px}
+  header .actions{display:flex;gap:10px}
+  .btn{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:10px 14px;
+    font-size:14px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .btn.secondary{background:#e9ecf4;color:#222;border:1px solid var(--border)}
+  .btn:hover{background:var(--blue-dark)}
+  .btn.secondary:hover{background:#dde3f3}
+  main{padding:20px;max-width:1100px;margin:0 auto}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  .grid{display:grid;gap:14px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .field label{display:block;font-size:13px;margin-bottom:6px;color:#444}
+  .field input,.field textarea, .field select{
+    width:100%;padding:10px;border:1px solid var(--border);
+    border-radius:8px;background:#fff;font-size:14px;
+  }
+  textarea{min-height:160px;resize:vertical}
+  h2.sectionTitle{margin:18px 0 10px 0;font-size:18px}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+  th{background:#f0f3fa}
+  tr:hover td{background:#fafbff}
+  .muted{color:#666;font-size:13px}
+  .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .photos-uploader{border:1px dashed var(--border);border-radius:10px;padding:14px;text-align:center;background:#fff}
+  .photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:12px}
+  .photo-item{position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+  .photo-item img{display:block;width:100%;height:140px;object-fit:cover}
+  .photo-caption{border-top:1px solid var(--border);padding:8px;font-size:12px}
+  .photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:6px;padding:4px 6px;cursor:pointer;font-size:12px}
+  @media print{
+    header, .no-print{display:none !important}
+    main{max-width:none}
+    body{background:#fff}
+    .card{border:none;box-shadow:none;padding:0}
+    .page-break{page-break-before:always}
+    .photos-grid{grid-template-columns:repeat(2,1fr)}
+    .photo-item img{height:260px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Report Builder v3.1</h1>
+  <div class="actions">
+    <button class="btn secondary no-print" id="btnGoDashboard" style="display:none">All Claims</button>
+    <button class="btn no-print" id="btnPrint" style="display:none">Export PDF</button>
+  </div>
+</header>
+
+<main>
+  <div id="dashboard" class="card">
+    <div class="toolbar">
+      <button class="btn" id="btnNew">New Report</button>
+      <button class="btn secondary" id="btnRefresh">Refresh</button>
+    </div>
+    <table id="claimsTable">
+      <thead>
+        <tr><th>Claim Ref / Title</th><th>Insured</th><th>Last Updated</th><th class="no-print">Actions</th></tr>
+      </thead>
+      <tbody id="claimsTbody"></tbody>
+    </table>
+    <p class="muted" id="noClaimsMsg" style="display:none">No claims saved yet. Click <b>New Report</b> to create your first one.</p>
+  </div>
+
+  <div id="editor" style="display:none">
+    <div class="card">
+      <div class="grid cols-2">
+        <div class="field"><label for="claimRef">Claim Ref / Title</label><input id="claimRef" /></div>
+        <div class="field"><label for="insured">Insured</label><input id="insured" /></div>
+        <div class="field"><label for="riskAddress">Risk Address</label><input id="riskAddress" /></div>
+        <div class="field"><label for="dateOfLoss">Date of Loss</label><input id="dateOfLoss" type="date" /></div>
+      </div>
+
+      <h2 class="sectionTitle">Circumstances of Loss</h2><div class="field"><textarea id="circumstances"></textarea></div>
+      <h2 class="sectionTitle">Assessment</h2><div class="field"><textarea id="assessment"></textarea></div>
+      <h2 class="sectionTitle">Conclusion</h2><div class="field"><textarea id="conclusion"></textarea></div>
+
+      <h2 class="sectionTitle">Photos</h2>
+      <div class="photos-uploader no-print"><input type="file" id="photoInput" accept="image/*" multiple /></div>
+      <div id="photosGrid" class="photos-grid"></div>
+
+      <h2 class="sectionTitle page-break">Transcript</h2><div class="field"><textarea id="transcript" style="min-height:480px"></textarea></div>
+      <h2 class="sectionTitle">Note of Fee</h2><div class="field"><textarea id="feeNote"></textarea></div>
+
+      <div class="toolbar no-print" style="margin-top:8px">
+        <button class="btn" id="btnSave">Save</button>
+        <button class="btn secondary" id="btnSaveExit">Save & Back</button>
+        <button class="btn secondary" id="btnDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const IDX_KEY = 'claimsIndex_v31';
+function loadIndex(){ try{ return JSON.parse(localStorage.getItem(IDX_KEY)) || [] }catch{ return [] }}
+function saveIndex(index){ localStorage.setItem(IDX_KEY, JSON.stringify(index)); }
+function claimKey(id){ return 'claim_v31:' + id; }
+function loadClaim(id){ try{ return JSON.parse(localStorage.getItem(claimKey(id))) || null }catch{ return null }}
+function saveClaim(id, data){ localStorage.setItem(claimKey(id), JSON.stringify(data)); }
+function deleteClaim(id){ localStorage.removeItem(claimKey(id)); saveIndex(loadIndex().filter(x=>x.id!==id)); }
+
+const $dashboard=document.getElementById('dashboard'),$editor=document.getElementById('editor'),$claimsTbody=document.getElementById('claimsTbody'),$noClaimsMsg=document.getElementById('noClaimsMsg');
+const $btnNew=document.getElementById('btnNew'),$btnRefresh=document.getElementById('btnRefresh'),$btnGoDashboard=document.getElementById('btnGoDashboard'),$btnPrint=document.getElementById('btnPrint');
+let currentId=null,currentPhotos=[];
+
+function renderDashboard(){
+  const index=loadIndex().sort((a,b)=>b.updated-a.updated);$claimsTbody.innerHTML='';$noClaimsMsg.style.display=index.length?'none':'block';
+  for(const item of index){const tr=document.createElement('tr');tr.innerHTML=`<td>${escapeHtml(item.title||'(Untitled)')}</td><td>${escapeHtml(item.insured||'')}</td><td>${new Date(item.updated).toLocaleString()}</td><td class="no-print"><button class="btn" data-open="${item.id}">Open</button><button class="btn secondary" data-del="${item.id}">Delete</button></td>`;$claimsTbody.appendChild(tr);}
+}
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+const $claimRef=document.getElementById('claimRef'),$insured=document.getElementById('insured'),$riskAddress=document.getElementById('riskAddress'),$dateOfLoss=document.getElementById('dateOfLoss'),$circumstances=document.getElementById('circumstances'),$assessment=document.getElementById('assessment'),$conclusion=document.getElementById('conclusion'),$transcript=document.getElementById('transcript'),$feeNote=document.getElementById('feeNote'),$photoInput=document.getElementById('photoInput'),$photosGrid=document.getElementById('photosGrid');
+
+function newId(){return 'c'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);}
+function switchToDashboard(){$editor.style.display='none';$dashboard.style.display='block';$btnPrint.style.display='none';$btnGoDashboard.style.display='none';renderDashboard();}
+function switchToEditor(){$dashboard.style.display='none';$editor.style.display='block';$btnPrint.style.display='inline-block';$btnGoDashboard.style.display='inline-block';}
+function populateEditor(data){$claimRef.value=data.title||'';$insured.value=data.insured||'';$riskAddress.value=data.riskAddress||'';$dateOfLoss.value=data.dateOfLoss||'';$circumstances.value=data.circumstances||'';$assessment.value=data.assessment||'';$conclusion.value=data.conclusion||'';$transcript.value=data.transcript||'';$feeNote.value=data.feeNote||'';currentPhotos=data.photos||[];renderPhotos();}
+function collectEditor(){return{id:currentId,title:$claimRef.value.trim(),insured:$insured.value.trim(),riskAddress:$riskAddress.value.trim(),dateOfLoss:$dateOfLoss.value,circumstances:$circumstances.value,assessment:$assessment.value,conclusion:$conclusion.value,transcript:$transcript.value,feeNote:$feeNote.value,photos:currentPhotos,updated:Date.now()};}
+function renderPhotos(){$photosGrid.innerHTML='';currentPhotos.forEach((p,idx)=>{const d=document.createElement('div');d.className='photo-item';d.innerHTML=`<button class="photo-del" data-delp="${idx}">✕</button><img src="${p.dataUrl}" /><div class="photo-caption"><input data-cap="${idx}" value="${escapeHtml(p.caption||'')}" placeholder="Caption (optional)" style="width:100%;border:none;outline:none"/></div>`;$photosGrid.appendChild(d);});}
+
+$photoInput.addEventListener('change',async e=>{for(const f of Array.from(e.target.files||[])){const dataUrl=await fileToDataURL(f);currentPhotos.push({dataUrl,caption:''});}renderPhotos();e.target.value='';});
+$photosGrid.addEventListener('input',e=>{const i=e.target.getAttribute('data-cap');if(i!=null){currentPhotos[+i].caption=e.target.value;}});
+$photosGrid.addEventListener('click',e=>{const i=e.target.getAttribute('data-delp');if(i!=null){currentPhotos.splice(+i,1);renderPhotos();}});
+function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+
+$btnNew.addEventListener('click',()=>{currentId=newId();populateEditor({});switchToEditor();});
+$btnRefresh.addEventListener('click',renderDashboard);
+$btnGoDashboard.addEventListener('click',switchToDashboard);
+$btnPrint.addEventListener('click',()=>window.print());
+document.addEventListener('click',e=>{const o=e.target.getAttribute&&e.target.getAttribute('data-open');const d=e.target.getAttribute&&e.target.getAttribute('data-del');if(o){const data=loadClaim(o);if(data){currentId=o;populateEditor(data);switchToEditor();}}if(d){if(confirm('Delete this claim?')){deleteClaim(d);renderDashboard();}}});
+document.getElementById('btnSave').addEventListener('click',saveCurrent);
+document.getElementById('btnSaveExit').addEventListener('click',()=>{if(saveCurrent())switchToDashboard();});
+document.getElementById('btnDelete').addEventListener('click',()=>{if(currentId&&confirm('Delete this claim?')){deleteClaim(currentId);switchToDashboard();}});
+
+function saveCurrent(){if(!currentId){currentId=newId();}const data=collectEditor();saveClaim(currentId,data);const idx=loadIndex();const ex=idx.find(x=>x.id===currentId);if(ex){ex.title=data.title;ex.insured=data.insured;ex.updated=data.updated;}else{idx.push({id:currentId,title:data.title,insured:data.insured,updated:data.updated});}saveIndex(idx);alert('Saved');return true;}
+renderDashboard();
+</script>
+</body>
+</html>
